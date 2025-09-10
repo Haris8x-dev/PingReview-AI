@@ -87,56 +87,44 @@ const ProductReviewChat = () => {
     setIsLoading(true);
 
     try {
+      let requestBody;
+
       if (!imageData) {
-        const response = await fetch("/api/gemini", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  { text: prompt }
-                ]
-              }
-            ]
-          }),
-        });
-
-        const data = await response.json();
-        setIsLoading(false);
-
-        if (data.candidates && data.candidates[0]) {
-          return data.candidates[0].content.parts[0].text;
-        } else {
-          console.error('API Response:', data);
-          throw new Error(data.error?.message || 'No response from AI');
-        }
+        // ✅ Text-only → use flash
+        requestBody = {
+          model: "gemini-1.5-flash",
+          contents: [
+            {
+              parts: [{ text: prompt }]
+            }
+          ]
+        };
+      } else {
+        // ✅ Image + text → use pro
+        requestBody = {
+          model: "gemini-1.5-pro",
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You're a product review expert. Analyze the product image and generate a review covering: quality, features, pros & cons, and market comparison. Keep each section short and informative — around 4–5 lines each, using concise bullet points. Avoid fluff.`
+                },
+                {
+                  inline_data: {
+                    mime_type: "image/jpeg",
+                    data: imageData
+                  }
+                }
+              ]
+            }
+          ]
+        };
       }
 
-      // For image analysis, also use gemini-2.0-flash (supports multimodal)
       const response = await fetch("/api/gemini", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gemini-1.5-pro", // serverless API will use this
-          contents: [{
-            parts: [
-              {
-                text: `You're a product review expert. Analyze the product image and generate a review covering: quality, features, pros & cons, and market comparison. Keep each section short and informative — around 4–5 lines each, using concise bullet points. Avoid fluff.`
-              },
-              {
-                inline_data: {
-                  mime_type: "image/jpeg",
-                  data: imageData
-                }
-              }
-            ]
-          }]
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -145,24 +133,25 @@ const ProductReviewChat = () => {
       if (data.candidates && data.candidates[0]) {
         const analysisText = data.candidates[0].content.parts[0].text;
 
-        // Try to extract product info for report generation
-        setLastAnalysis({
-          productName: "Analyzed Product",
-          analysisText: analysisText
-        });
+        if (imageData) {
+          setLastAnalysis({
+            productName: "Analyzed Product",
+            analysisText
+          });
+        }
 
         return analysisText;
       } else {
-        console.error('API Response:', data);
-        throw new Error(data.error?.message || 'No response from AI');
+        console.error("API Response:", data);
+        throw new Error(data.error?.message || "No response from AI");
       }
-
     } catch (error) {
-      console.error('Gemini API Error:', error);
+      console.error("Gemini API Error:", error);
       setIsLoading(false);
       throw error;
     }
   };
+
 
   const filterCustomResponse = (text) => {
     const lower = text.toLowerCase();

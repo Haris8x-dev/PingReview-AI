@@ -36,38 +36,6 @@ const ProductReviewChat = () => {
     }
   }, [inputText, uploadedImage, messages]);
 
-  // Resizing the image : 
-
-  const resizeImage = (file) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const maxDim = 1024; // max width/height
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height && width > maxDim) {
-          height *= maxDim / width;
-          width = maxDim;
-        } else if (height > width && height > maxDim) {
-          width *= maxDim / height;
-          height = maxDim;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Convert to JPEG at 0.8 quality
-        resolve(canvas.toDataURL("image/jpeg", 0.8));
-      };
-    });
-  };
-
-
 
   // Pre-made prompts for quick interaction
   const quickPrompts = [
@@ -114,8 +82,6 @@ const ProductReviewChat = () => {
     });
   };
 
-  // Resizing the image
-
   // Call Gemini API for product analysis
   const analyzeWithGemini = async (imageData, prompt) => {
     setIsLoading(true);
@@ -127,7 +93,6 @@ const ProductReviewChat = () => {
         // ✅ Text-only → use flash
         requestBody = {
           model: "gemini-1.5-flash",
-          model: "gemini-2.5-flash",
           contents: [
             {
               parts: [{ text: prompt }]
@@ -137,8 +102,7 @@ const ProductReviewChat = () => {
       } else {
         // ✅ Image + text → use pro
         requestBody = {
-          model: "gemini-1.5-pro",
-          model: "gemini-2.5-flash",
+          model: "gemini-2.0-flash",
           contents: [
             {
               parts: [
@@ -281,18 +245,9 @@ const ProductReviewChat = () => {
     try {
       let imageBase64 = null;
       if (uploadedImage) {
-        // Resize and compress image first
-        const resizedDataUrl = await resizeImage(uploadedImage);
-        imageBase64 = resizedDataUrl;
-
-        // Optional: check size (avoid too large images)
-        if (imageBase64.length * 0.75 > 4_500_000) { // ~4.5MB limit
-          alert("Image is too large. Please upload a smaller file.");
-          setIsLoading(false);
-          return;
-        }
+        // Convert data URL to base64
+        imageBase64 = uploadedImage.split(',')[1];
       }
-
 
       const response = await analyzeWithGemini(imageBase64, text);
 

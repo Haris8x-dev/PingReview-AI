@@ -36,6 +36,38 @@ const ProductReviewChat = () => {
     }
   }, [inputText, uploadedImage, messages]);
 
+  // Resizing the image : 
+
+  const resizeImage = (file) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxDim = 1024; // max width/height
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height && width > maxDim) {
+          height *= maxDim / width;
+          width = maxDim;
+        } else if (height > width && height > maxDim) {
+          width *= maxDim / height;
+          height = maxDim;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to JPEG at 0.8 quality
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      };
+    });
+  };
+
+
 
   // Pre-made prompts for quick interaction
   const quickPrompts = [
@@ -81,6 +113,8 @@ const ProductReviewChat = () => {
       reader.readAsDataURL(file);
     });
   };
+
+  // Resizing the image
 
   // Call Gemini API for product analysis
   const analyzeWithGemini = async (imageData, prompt) => {
@@ -245,9 +279,18 @@ const ProductReviewChat = () => {
     try {
       let imageBase64 = null;
       if (uploadedImage) {
-        // Convert data URL to base64
-        imageBase64 = uploadedImage.split(',')[1];
+        // Resize and compress image first
+        const resizedDataUrl = await resizeImage(uploadedImage);
+        imageBase64 = resizedDataUrl.split(",")[1];
+
+        // Optional: check size (avoid too large images)
+        if (imageBase64.length * 0.75 > 4_500_000) { // ~4.5MB limit
+          alert("Image is too large. Please upload a smaller file.");
+          setIsLoading(false);
+          return;
+        }
       }
+
 
       const response = await analyzeWithGemini(imageBase64, text);
 

@@ -107,9 +107,6 @@ const ProductReviewChat = () => {
             {
               parts: [
                 {
-                  text: `You're a product review expert. Analyze the product image and generate a review covering: quality, features, pros & cons, and market comparison. Keep each section short and informative — around 4–5 lines each, using concise bullet points. Avoid fluff.`
-                },
-                {
                   inline_data: {
                     mime_type: "image/jpeg",
                     data: imageData

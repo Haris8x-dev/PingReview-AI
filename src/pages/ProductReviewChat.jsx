@@ -127,6 +127,7 @@ const ProductReviewChat = () => {
         // ✅ Text-only → use flash
         requestBody = {
           model: "gemini-1.5-flash",
+          model: "gemini-2.5-flash",
           contents: [
             {
               parts: [{ text: prompt }]
@@ -137,6 +138,7 @@ const ProductReviewChat = () => {
         // ✅ Image + text → use pro
         requestBody = {
           model: "gemini-1.5-pro",
+          model: "gemini-2.5-flash",
           contents: [
             {
               parts: [
@@ -146,7 +148,7 @@ const ProductReviewChat = () => {
                 {
                   inline_data: {
                     mime_type: "image/jpeg",
-                    data: imageData.split(",")[1]
+                    data: imageData
                   }
                 }
               ]

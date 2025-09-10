@@ -88,35 +88,44 @@ const ProductReviewChat = () => {
 
     try {
       let requestBody;
+      const contents = [{ parts: [] }];
 
-      if (!imageData) {
-        // ✅ Text-only → use flash
-        requestBody = {
-          model: "gemini-1.5-flash",
-          contents: [
-            {
-              parts: [{ text: prompt }]
-            }
-          ]
-        };
-      } else {
-        // ✅ Image + text → use pro
-        requestBody = {
-          model: "gemini-2.0-flash",
-          contents: [
-            {
-              parts: [
-                {
-                  inline_data: {
-                    mime_type: "image/jpeg",
-                    data: imageData
-                  }
-                }
-              ]
-            }
-          ]
-        };
+      // Normalize imageData → raw base64
+      let base64Image = null;
+      if (imageData) {
+        base64Image = (typeof imageData === "string" && imageData.startsWith("data:"))
+          ? imageData.split(",")[1]
+          : imageData;
       }
+
+      // If image exists → add inline_data part
+      if (base64Image) {
+        contents[0].parts.push({
+          inline_data: {
+            mime_type: "image/jpeg",
+            data: base64Image
+          }
+        });
+      }
+
+      // Decide which text instruction to send
+      const instructionText = (prompt && prompt.trim())
+        ? prompt.trim()
+        : (base64Image
+          ? `You're a product review expert. Analyze the product image and generate a review covering: quality, features, pros & cons, and market comparison. Keep each section short and informative — around 4–5 lines each, using concise bullet points. Avoid fluff.`
+          : "");
+
+      if (instructionText) {
+        contents[0].parts.push({ text: instructionText });
+      }
+
+      // Pick correct model
+      const modelToUse = base64Image ? "gemini-2.5-flash" : "gemini-1.5-flash";
+
+      requestBody = { model: modelToUse, contents };
+
+      // 🔍 Debug log
+      console.log("Gemini request:", { model: modelToUse, parts: contents[0].parts });
 
       const response = await fetch("/api/gemini", {
         method: "POST",
@@ -130,7 +139,7 @@ const ProductReviewChat = () => {
       if (data.candidates && data.candidates[0]) {
         const analysisText = data.candidates[0].content.parts[0].text;
 
-        if (imageData) {
+        if (base64Image) {
           setLastAnalysis({
             productName: "Analyzed Product",
             analysisText

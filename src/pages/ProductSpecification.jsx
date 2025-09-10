@@ -27,6 +27,7 @@ const ProductSpecification = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          model: "gemini-1.5-flash", // ✅ tell backend what model to use
           contents: [{
             parts: [{
               text: `Generate EXACTLY 10 technical specifications for "${productName}". Format as a numbered list. Keep each specification under 15 words. Focus on key technical details like dimensions, performance, connectivity, and features. Be concise and factual.`

@@ -122,6 +122,7 @@ const ProductReviewChat = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          model: "gemini-1.5-pro", // serverless API will use this
           contents: [{
             parts: [
               {

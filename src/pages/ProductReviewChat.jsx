@@ -146,7 +146,7 @@ const ProductReviewChat = () => {
                 {
                   inline_data: {
                     mime_type: "image/jpeg",
-                    data: imageData
+                    data: imageData.split(",")[1]
                   }
                 }
               ]
@@ -281,7 +281,7 @@ const ProductReviewChat = () => {
       if (uploadedImage) {
         // Resize and compress image first
         const resizedDataUrl = await resizeImage(uploadedImage);
-        imageBase64 = resizedDataUrl.split(",")[1];
+        imageBase64 = resizedDataUrl;
 
         // Optional: check size (avoid too large images)
         if (imageBase64.length * 0.75 > 4_500_000) { // ~4.5MB limit

@@ -5,14 +5,16 @@ export default async function handler(req, res) {
 
     try {
         const GEMINI_KEY = process.env.GEMINI_API_KEY;
-        const { model = "gemini-1.5-flash", ...rest } = req.body; // ✅ allow model override
+
+        // Use model sent by frontend, fallback to gemini-1.5-flash
+        const { model = "gemini-1.5-flash", contents, generationConfig } = req.body;
 
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(rest),
+                body: JSON.stringify({ contents, generationConfig }),
             }
         );
 

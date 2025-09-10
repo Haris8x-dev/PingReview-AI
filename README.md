@@ -4,6 +4,8 @@ PingReview AI is a smart **AI-powered product comparison and review tool** built
 It lets users upload product images or enter product names, then generates **detailed comparisons, reviews, and technical specs** in seconds.  
 You can also **download reports as PDFs** for sharing or later use.
 
+ACCESS IT : https://pingreviewai.vercel.app/
+
 ---
 
 ## ✨ Features

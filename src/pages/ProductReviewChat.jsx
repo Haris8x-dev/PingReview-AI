@@ -282,7 +282,7 @@ const ProductReviewChat = () => {
         }
       }
 
-      const response = await analyzeWithGemini(imageBase64, text);
+      const response = await analyzeWithGemini(imageBase64 || text);
 
       const aiMessage = {
         id: Date.now() + 1,
@@ -308,7 +308,7 @@ const ProductReviewChat = () => {
       const errorMessage = {
         id: Date.now() + 1,
         type: 'ai',
-        content: "Sorry, I encountered an error analyzing your request. Please make sure you have a stable internet connection and try again.",
+        content: "Sorry, I encountered an error analyzing your request.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);

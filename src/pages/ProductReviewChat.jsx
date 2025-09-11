@@ -282,7 +282,7 @@ const ProductReviewChat = () => {
         }
       }
 
-      const response = await analyzeWithGemini(imageBase64 || text);
+      const response = await analyzeWithGemini(imageBase64, text);
 
       const aiMessage = {
         id: Date.now() + 1,

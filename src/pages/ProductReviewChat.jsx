@@ -18,6 +18,7 @@ import {
   Camera
 } from 'lucide-react';
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const ProductReviewChat = () => {
   const [messages, setMessages] = useState([]);
@@ -518,12 +519,17 @@ const ProductReviewChat = () => {
                     <div className={`${message.type === 'user' ? 'text-black' : 'text-white'} whitespace-pre-wrap`}>
                       {message.type === 'ai' ? (
                         <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
                           components={{
-                            h1: ({ node, ...props }) => <h1 className="text-yellow-400 font-bold" {...props} />,
-                            h2: ({ node, ...props }) => <h2 className="text-yellow-400 font-bold" {...props} />,
-                            ul: ({ node, ...props }) => <ul className="list-disc list-inside" {...props} />,
-                            li: ({ node, ...props }) => <li className="ml-4">{props.children}</li>,
-                            strong: ({ node, ...props }) => <span className="text-yellow-400 font-bold" {...props} />
+                            strong: ({ node, ...props }) => (
+                              <span className="text-yellow-400 font-bold" {...props} />
+                            ),
+                            ul: ({ node, ...props }) => (
+                              <ul className="list-disc list-inside space-y-1" {...props} />
+                            ),
+                            li: ({ node, ...props }) => (
+                              <li className="ml-4 text-white">{props.children}</li>
+                            ),
                           }}
                         >
                           {message.content}

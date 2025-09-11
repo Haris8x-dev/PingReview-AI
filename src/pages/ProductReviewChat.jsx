@@ -485,7 +485,7 @@ const ProductReviewChat = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="max-w-6xl mx-auto flex items-center justify-between pt-20">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               className="text-white hover:text-amber-300 transition-colors"

@@ -17,6 +17,7 @@ import {
   Loader,
   Camera
 } from 'lucide-react';
+import ReactMarkdown from "react-markdown";
 
 const ProductReviewChat = () => {
   const [messages, setMessages] = useState([]);
@@ -231,11 +232,12 @@ const ProductReviewChat = () => {
       timestamp: new Date()
     };
 
+    // Add user message
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
     setShowPrompts(false);
 
-    // 🔍 Custom Filter Logic
+    // Custom Filter Logic
     const filteredResponse = filterCustomResponse(text);
     if (filteredResponse) {
       const aiMessage = {
@@ -245,14 +247,29 @@ const ProductReviewChat = () => {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiMessage]);
+
+      // Clear uploaded image and reset file input
       setUploadedImage(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+
       return;
     }
+
     try {
       let imageBase64 = null;
+
       if (uploadedImage) {
-        // Convert data URL to base64
-        imageBase64 = uploadedImage.split(',')[1];
+        // Resize & compress image before sending
+        const resizedDataUrl = await resizeImage(uploadedImage);
+        imageBase64 = resizedDataUrl.split(",")[1];
+
+        // Optional: check size (avoid too large images)
+        if (imageBase64.length * 0.75 > 4_500_000) {
+          alert("Image is too large. Please upload a smaller file.");
+          setUploadedImage(null);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+          return;
+        }
       }
 
       const response = await analyzeWithGemini(imageBase64, text);
@@ -266,11 +283,12 @@ const ProductReviewChat = () => {
 
       setMessages(prev => [...prev, aiMessage]);
 
-      // Clear uploaded image after analysis
+      // Clear uploaded image and reset file input after successful send
       setUploadedImage(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       const errorMessage = {
         id: Date.now() + 1,
         type: 'ai',
@@ -278,6 +296,10 @@ const ProductReviewChat = () => {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+
+      // Clear uploaded image and reset file input on error too
+      setUploadedImage(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -494,7 +516,21 @@ const ProductReviewChat = () => {
                       </div>
                     )}
                     <div className={`${message.type === 'user' ? 'text-black' : 'text-white'} whitespace-pre-wrap`}>
-                      {message.content}
+                      {message.type === 'ai' ? (
+                        <ReactMarkdown
+                          components={{
+                            h1: ({ node, ...props }) => <h1 className="text-yellow-400 font-bold" {...props} />,
+                            h2: ({ node, ...props }) => <h2 className="text-yellow-400 font-bold" {...props} />,
+                            ul: ({ node, ...props }) => <ul className="list-disc list-inside" {...props} />,
+                            li: ({ node, ...props }) => <li className="ml-4">{props.children}</li>,
+                            strong: ({ node, ...props }) => <span className="text-yellow-400 font-bold" {...props} />
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      ) : (
+                        message.content
+                      )}
                     </div>
                     {message.type === 'ai' && (
                       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/20">

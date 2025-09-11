@@ -19,6 +19,9 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 const ProductReviewChat = () => {
   const [messages, setMessages] = useState([]);
@@ -28,6 +31,10 @@ const ProductReviewChat = () => {
   const [showPrompts, setShowPrompts] = useState(true);
   const [copied, setCopied] = useState(false);
   const [lastAnalysis, setLastAnalysis] = useState(null);
+  const [uploadCount, setUploadCount] = useState(0);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -284,6 +291,12 @@ const ProductReviewChat = () => {
 
       setMessages(prev => [...prev, aiMessage]);
 
+      // ✅ Always set lastAnalysis, even if no image
+      setLastAnalysis({
+        productName: uploadedImage ? "Analyzed Product" : "Text Query",
+        analysisText: response
+      });
+
       // Clear uploaded image and reset file input after successful send
       setUploadedImage(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -306,13 +319,20 @@ const ProductReviewChat = () => {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setUploadedImage(e.target.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (!user && uploadCount >= 1) {
+      alert("🚫 You’ve reached the free upload limit. Please log in to continue.");
+      navigate("/login");
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setUploadedImage(e.target.result);
+      if (!user) setUploadCount((prev) => prev + 1); // count only for guests
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleQuickPrompt = (prompt) => {

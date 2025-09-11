@@ -293,7 +293,7 @@ const ProductReviewChat = () => {
 
       // ✅ Always set lastAnalysis, even if no image
       setLastAnalysis({
-        productName: uploadedImage ? "Analyzed Product" : "Text Query",
+        productName: uploadedImage ? "Analyzed Product" : (text || "Text Query"),
         analysisText: response
       });
 
